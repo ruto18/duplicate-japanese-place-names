@@ -188,10 +188,9 @@ h1 {
 }
 
 .detail-pane {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--line);
   background: var(--surface);
 }
@@ -255,8 +254,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  min-height: 0;
-  overflow: auto;
+  overflow: visible;
   padding: 12px 14px 14px;
 }
 
@@ -380,28 +378,102 @@ h1 {
 }
 
 @media (max-width: 900px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 62vh) minmax(0, 38vh);
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 112vh;
+    min-height: 112svh;
+    overflow: visible;
   }
 
   .map-pane {
-    height: 62vh;
-    padding: 12px;
-    grid-template-rows: auto minmax(0, 1fr) minmax(92px, 128px);
+    height: 70vh;
+    height: 70svh;
+    min-height: 560px;
+    max-height: 760px;
+    padding: 10px 0 0;
+    gap: 10px;
+    grid-template-rows: auto minmax(320px, 1fr) minmax(108px, 136px);
   }
 
   .summary-bar {
-    align-items: start;
+    align-items: end;
+    margin: 0 12px;
+    padding-bottom: 8px;
+    gap: 10px;
+  }
+
+  h1 {
+    font-size: clamp(30px, 11vw, 44px);
+  }
+
+  .reading {
+    margin-top: 5px;
   }
 
   .metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(58px, 1fr));
+    gap: 6px;
+  }
+
+  .metrics div {
+    min-width: 58px;
+    padding: 6px 7px;
+  }
+
+  .metrics span {
+    font-size: 18px;
+  }
+
+  .map-stage {
+    width: 100vw;
+    border-right: 0;
+    border-left: 0;
+  }
+
+  .geo-chart {
+    padding: 0;
+  }
+
+  .fallback-map {
+    padding: 8px;
+  }
+
+  .detail-pane {
+    margin: 0 12px;
+  }
+
+  .detail-head {
+    padding: 8px 9px;
+  }
+
+  .meaning {
+    padding: 8px 9px;
+    line-height: 1.5;
+  }
+
+  .location-list {
+    padding: 8px 9px 10px;
   }
 
   .list-pane {
-    height: 38vh;
+    height: 42vh;
+    height: 42svh;
+    min-height: 300px;
     border-left: 0;
     border-top: 1px solid var(--line);
+  }
+
+  .place-list {
+    -webkit-overflow-scrolling: touch;
   }
 }
