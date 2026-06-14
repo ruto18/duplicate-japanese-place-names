@@ -317,6 +317,36 @@ h1 {
   font-size: 12px;
 }
 
+.range-control {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.range-select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: #fbfdff;
+  color: var(--ink);
+  outline: none;
+}
+
+.range-select:focus {
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.range-select:disabled {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
 .place-list {
   min-height: 0;
   overflow-y: auto;

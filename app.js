@@ -41,6 +41,7 @@ const els = {
   searchInput: document.querySelector("#searchInput"),
   resultCount: document.querySelector("#resultCount"),
   totalCount: document.querySelector("#totalCount"),
+  rangeSelect: document.querySelector("#rangeSelect"),
   placeList: document.querySelector("#placeList"),
 };
 
@@ -48,7 +49,8 @@ let currentRecord = null;
 let geoChart = null;
 let geoReady = false;
 let activeButton = null;
-const MAX_RENDERED_ITEMS = 300;
+let currentRangeIndex = 0;
+const RANGE_SIZE = 300;
 
 function normalize(text) {
   return String(text || "")
@@ -227,6 +229,22 @@ function searchRank(record, query) {
   return 4;
 }
 
+function renderRangeOptions(total) {
+  const pageCount = Math.max(1, Math.ceil(total / RANGE_SIZE));
+  if (currentRangeIndex >= pageCount) currentRangeIndex = 0;
+
+  const options = Array.from({ length: pageCount }, (_, index) => {
+    const start = index * RANGE_SIZE + 1;
+    const end = Math.min((index + 1) * RANGE_SIZE, total);
+    const label = total ? `${formatNumber(start)}-${formatNumber(end)}` : "0件";
+    return `<option value="${index}">${label}</option>`;
+  }).join("");
+
+  els.rangeSelect.innerHTML = options;
+  els.rangeSelect.value = String(currentRangeIndex);
+  els.rangeSelect.disabled = pageCount <= 1;
+}
+
 function renderList() {
   const query = normalize(els.searchInput.value);
   const matches = query
@@ -235,7 +253,10 @@ function renderList() {
   const orderedMatches = query
     ? matches.slice().sort((a, b) => searchRank(a, query) - searchRank(b, query) || a.id - b.id)
     : matches;
-  const visibleMatches = orderedMatches.slice(0, MAX_RENDERED_ITEMS);
+  renderRangeOptions(orderedMatches.length);
+
+  const start = currentRangeIndex * RANGE_SIZE;
+  const visibleMatches = orderedMatches.slice(start, start + RANGE_SIZE);
 
   els.resultCount.textContent = `${formatNumber(orderedMatches.length)}件`;
   els.totalCount.textContent = `${formatNumber(DATA.length)}件中`;
@@ -246,11 +267,7 @@ function renderList() {
     return;
   }
 
-  const remaining = orderedMatches.length - visibleMatches.length;
-  els.placeList.innerHTML = visibleMatches.map(placeItem).join("")
-    + (remaining > 0
-      ? `<p class="empty-state">表示は先頭${formatNumber(MAX_RENDERED_ITEMS)}件まで。検索で絞り込んでください。残り${formatNumber(remaining)}件。</p>`
-      : "");
+  els.placeList.innerHTML = visibleMatches.map(placeItem).join("");
   setActiveButton(currentRecord?.id);
 }
 
@@ -263,6 +280,14 @@ function bindEvents() {
   });
 
   els.searchInput.addEventListener("input", () => {
+    currentRangeIndex = 0;
+    els.placeList.scrollTop = 0;
+    renderList();
+  });
+
+  els.rangeSelect.addEventListener("change", () => {
+    currentRangeIndex = Number(els.rangeSelect.value) || 0;
+    els.placeList.scrollTop = 0;
     renderList();
   });
 
