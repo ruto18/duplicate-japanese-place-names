@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>全国重複地域名マップ</title>
+    <title>地域名検索</title>
     <link rel="stylesheet" href="./styles.css">
     <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="./data.js" defer></script>
@@ -14,7 +14,7 @@
       <section class="map-pane" aria-label="日本地図">
         <header class="summary-bar">
           <div>
-            <p class="eyebrow">全国重複地域名</p>
+            <p class="eyebrow">地域名検索</p>
             <h1 id="selectedName">読み込み中</h1>
             <p id="selectedReading" class="reading"></p>
           </div>
@@ -51,6 +51,10 @@
 
       <aside class="list-pane" aria-label="地名一覧">
         <div class="search-panel">
+          <div class="mode-control" role="group" aria-label="表示種別">
+            <button class="mode-button is-active" type="button" data-mode="multiple">複数</button>
+            <button class="mode-button" type="button" data-mode="single">単一</button>
+          </div>
           <label class="search-label" for="searchInput">地名検索</label>
           <input id="searchInput" class="search-input" type="search" autocomplete="off" placeholder="例: 大宮 / 御幸 / あさひ">
           <div class="list-meta">

@@ -1,4 +1,11 @@
-const DATA = window.PLACE_DATA || [];
+const DATASETS = {
+  multiple: window.PLACE_DATA || [],
+  single: window.SINGLE_PLACE_DATA || null,
+};
+const DATASET_COUNTS = window.PLACE_DATA_COUNTS || {
+  multiple: DATASETS.multiple.length,
+  single: 0,
+};
 const PREFECTURES = window.PREFECTURES || [];
 const PREF_BY_NAME = new Map(PREFECTURES.map((pref) => [pref.name, pref]));
 const PREF_BY_CODE = new Map(PREFECTURES.map((pref) => [pref.code, pref]));
@@ -38,6 +45,7 @@ const els = {
   wordLink: document.querySelector("#wordLink"),
   literatureLink: document.querySelector("#literatureLink"),
   postalLink: document.querySelector("#postalLink"),
+  modeButtons: Array.from(document.querySelectorAll(".mode-button")),
   searchInput: document.querySelector("#searchInput"),
   resultCount: document.querySelector("#resultCount"),
   totalCount: document.querySelector("#totalCount"),
@@ -49,7 +57,9 @@ let currentRecord = null;
 let geoChart = null;
 let geoReady = false;
 let activeButton = null;
+let currentMode = "multiple";
 let currentRangeIndex = 0;
+let singleDataPromise = null;
 const RANGE_SIZE = 300;
 
 function normalize(text) {
@@ -69,6 +79,46 @@ function escapeHtml(text) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function activeData() {
+  return DATASETS[currentMode] || [];
+}
+
+function setModeControlsLoading(loading) {
+  els.modeButtons.forEach((button) => {
+    button.disabled = loading;
+    button.classList.toggle("is-active", button.dataset.mode === currentMode);
+  });
+}
+
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[data-dynamic-src="${src}"]`);
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.defer = true;
+    script.dataset.dynamicSrc = src;
+    script.addEventListener("load", resolve, { once: true });
+    script.addEventListener("error", reject, { once: true });
+    document.head.append(script);
+  });
+}
+
+async function ensureModeData(mode) {
+  if (mode !== "single" || DATASETS.single) return;
+  if (!singleDataPromise) {
+    singleDataPromise = loadScriptOnce("./single-data.js").then(() => {
+      DATASETS.single = window.SINGLE_PLACE_DATA || [];
+    });
+  }
+  await singleDataPromise;
 }
 
 function splitLocations(record) {
@@ -170,6 +220,23 @@ function setLink(anchor, href) {
   anchor.toggleAttribute("aria-disabled", !href);
 }
 
+function clearDetails(message = "該当なし") {
+  currentRecord = null;
+  els.selectedName.textContent = message;
+  els.selectedReading.textContent = "";
+  els.prefCount.textContent = "0";
+  els.locationCount.textContent = "0";
+  els.meaningText.textContent = "";
+  els.prefChips.innerHTML = "";
+  els.locationList.innerHTML = "";
+  setLink(els.wordLink, "");
+  setLink(els.literatureLink, "");
+  setLink(els.postalLink, "");
+  updateFallbackMap(null);
+  els.geoChart.classList.remove("is-visible");
+  els.mapFallback.classList.add("is-visible");
+}
+
 function renderDetails(record) {
   els.selectedName.textContent = record.name;
   els.selectedReading.textContent = record.reading || "";
@@ -245,11 +312,12 @@ function renderRangeOptions(total) {
   els.rangeSelect.disabled = pageCount <= 1;
 }
 
-function renderList() {
+function renderList({ selectFirstIfCurrentMissing = false } = {}) {
   const query = normalize(els.searchInput.value);
+  const data = activeData();
   const matches = query
-    ? DATA.filter((record) => normalize(`${record.name} ${record.reading}`).includes(query))
-    : DATA;
+    ? data.filter((record) => normalize(`${record.name} ${record.reading}`).includes(query))
+    : data;
   const orderedMatches = query
     ? matches.slice().sort((a, b) => searchRank(a, query) - searchRank(b, query) || a.id - b.id)
     : matches;
@@ -259,15 +327,20 @@ function renderList() {
   const visibleMatches = orderedMatches.slice(start, start + RANGE_SIZE);
 
   els.resultCount.textContent = `${formatNumber(orderedMatches.length)}件`;
-  els.totalCount.textContent = `${formatNumber(DATA.length)}件中`;
+  els.totalCount.textContent = `${formatNumber(data.length)}件中`;
 
   if (!orderedMatches.length) {
     els.placeList.innerHTML = `<p class="empty-state">該当なし</p>`;
     activeButton = null;
+    if (selectFirstIfCurrentMissing) clearDetails();
     return;
   }
 
   els.placeList.innerHTML = visibleMatches.map(placeItem).join("");
+  if (selectFirstIfCurrentMissing && !orderedMatches.includes(currentRecord)) {
+    selectRecord(orderedMatches[0]);
+    return;
+  }
   setActiveButton(currentRecord?.id);
 }
 
@@ -275,8 +348,31 @@ function bindEvents() {
   els.placeList.addEventListener("click", (event) => {
     const button = event.target.closest(".place-item");
     if (!button) return;
-    const record = DATA[Number(button.dataset.id)];
+    const record = activeData()[Number(button.dataset.id)];
     if (record) selectRecord(record);
+  });
+
+  els.modeButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      const nextMode = button.dataset.mode;
+      if (!nextMode || nextMode === currentMode) return;
+
+      currentMode = nextMode;
+      currentRangeIndex = 0;
+      els.placeList.scrollTop = 0;
+      els.placeList.innerHTML = `<p class="empty-state">${nextMode === "single" ? "単一地名" : "複数地名"}を読み込み中</p>`;
+      setModeControlsLoading(true);
+
+      try {
+        await ensureModeData(nextMode);
+        renderList({ selectFirstIfCurrentMissing: true });
+      } catch (error) {
+        els.placeList.innerHTML = `<p class="empty-state">データを読み込めませんでした</p>`;
+        console.error(error);
+      } finally {
+        setModeControlsLoading(false);
+      }
+    });
   });
 
   els.searchInput.addEventListener("input", () => {
@@ -300,8 +396,10 @@ function bindEvents() {
 function boot() {
   initGeoChart();
   bindEvents();
+  setModeControlsLoading(false);
   renderList();
-  if (DATA.length) selectRecord(DATA[0], true);
+  const data = activeData();
+  if (data.length) selectRecord(data[0], true);
 }
 
 boot();
