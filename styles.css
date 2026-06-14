@@ -452,8 +452,8 @@ h1 {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
     height: auto;
-    min-height: 112vh;
-    min-height: 112svh;
+    min-height: 136vh;
+    min-height: 136svh;
     overflow: visible;
   }
 
@@ -528,9 +528,9 @@ h1 {
   }
 
   .list-pane {
-    height: 42vh;
-    height: 42svh;
-    min-height: 300px;
+    height: 66vh;
+    height: 66svh;
+    min-height: 430px;
     border-left: 0;
     border-top: 1px solid var(--line);
   }
