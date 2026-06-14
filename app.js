@@ -39,6 +39,7 @@ const els = {
   locationCount: document.querySelector("#locationCount"),
   geoChart: document.querySelector("#geoChart"),
   mapFallback: document.querySelector("#mapFallback"),
+  detailPane: document.querySelector(".detail-pane"),
   prefChips: document.querySelector("#prefChips"),
   meaningText: document.querySelector("#meaningText"),
   locationList: document.querySelector("#locationList"),
@@ -222,6 +223,7 @@ function setLink(anchor, href) {
 
 function clearDetails(message = "該当なし") {
   currentRecord = null;
+  els.detailPane.scrollTop = 0;
   els.selectedName.textContent = message;
   els.selectedReading.textContent = "";
   els.prefCount.textContent = "0";
@@ -238,6 +240,7 @@ function clearDetails(message = "該当なし") {
 }
 
 function renderDetails(record) {
+  els.detailPane.scrollTop = 0;
   els.selectedName.textContent = record.name;
   els.selectedReading.textContent = record.reading || "";
   els.prefCount.textContent = formatNumber(record.prefCount || record.prefs.length);

@@ -46,7 +46,7 @@ input {
 
 .map-pane {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) minmax(130px, 180px);
+  grid-template-rows: auto minmax(0, 1fr) minmax(170px, 240px);
   min-width: 0;
   min-height: 0;
   padding: 18px;
@@ -189,8 +189,11 @@ h1 {
 
 .detail-pane {
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--line);
   background: var(--surface);
 }
@@ -255,7 +258,7 @@ h1 {
   flex-wrap: wrap;
   gap: 6px;
   overflow: visible;
-  padding: 12px 14px 14px;
+  padding: 12px 14px 28px;
 }
 
 .location-pill {
@@ -452,19 +455,19 @@ h1 {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
     height: auto;
-    min-height: 136vh;
-    min-height: 136svh;
+    min-height: 152vh;
+    min-height: 152svh;
     overflow: visible;
   }
 
   .map-pane {
-    height: 70vh;
-    height: 70svh;
-    min-height: 560px;
-    max-height: 760px;
+    height: 86vh;
+    height: 86svh;
+    min-height: 680px;
+    max-height: none;
     padding: 10px 0 0;
     gap: 10px;
-    grid-template-rows: auto minmax(320px, 1fr) minmax(108px, 136px);
+    grid-template-rows: auto minmax(320px, 1fr) minmax(220px, 32svh);
   }
 
   .summary-bar {
@@ -524,7 +527,7 @@ h1 {
   }
 
   .location-list {
-    padding: 8px 9px 10px;
+    padding: 8px 9px 36px;
   }
 
   .list-pane {
