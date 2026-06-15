@@ -1,14 +1,14 @@
 const DATASETS = {
-  multiple: window.PLACE_DATA || [],
-  single: window.SINGLE_PLACE_DATA || null,
+  multiple: null,
+  single: null,
 };
-const DATASET_COUNTS = window.PLACE_DATA_COUNTS || {
-  multiple: DATASETS.multiple.length,
+let DATASET_COUNTS = {
+  multiple: 0,
   single: 0,
 };
-const PREFECTURES = window.PREFECTURES || [];
-const PREF_BY_NAME = new Map(PREFECTURES.map((pref) => [pref.name, pref]));
-const PREF_BY_CODE = new Map(PREFECTURES.map((pref) => [pref.code, pref]));
+let PREFECTURES = [];
+let PREF_BY_NAME = new Map();
+let PREF_BY_CODE = new Map();
 
 const tileLayout = [
   ["北海道", 450, 20, 126, 64],
@@ -60,6 +60,7 @@ let geoReady = false;
 let activeButton = null;
 let currentMode = "multiple";
 let currentRangeIndex = 0;
+let multipleDataPromise = null;
 let singleDataPromise = null;
 const RANGE_SIZE = 300;
 
@@ -86,6 +87,12 @@ function activeData() {
   return DATASETS[currentMode] || [];
 }
 
+function setPrefectures(prefectures) {
+  PREFECTURES = prefectures || [];
+  PREF_BY_NAME = new Map(PREFECTURES.map((pref) => [pref.name, pref]));
+  PREF_BY_CODE = new Map(PREFECTURES.map((pref) => [pref.code, pref]));
+}
+
 function setModeControlsLoading(loading) {
   els.modeButtons.forEach((button) => {
     button.disabled = loading;
@@ -93,30 +100,41 @@ function setModeControlsLoading(loading) {
   });
 }
 
-function loadScriptOnce(src) {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[data-dynamic-src="${src}"]`);
-    if (existing) {
-      existing.addEventListener("load", resolve, { once: true });
-      existing.addEventListener("error", reject, { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = src;
-    script.defer = true;
-    script.dataset.dynamicSrc = src;
-    script.addEventListener("load", resolve, { once: true });
-    script.addEventListener("error", reject, { once: true });
-    document.head.append(script);
-  });
+async function loadGzippedJson(src) {
+  if (!("DecompressionStream" in window)) {
+    throw new Error("このブラウザは圧縮データの展開に対応していません。");
+  }
+  const response = await fetch(src);
+  if (!response.ok || !response.body) {
+    throw new Error(`${src} を読み込めませんでした。`);
+  }
+  const stream = response.body.pipeThrough(new DecompressionStream("gzip"));
+  return new Response(stream).json();
 }
 
 async function ensureModeData(mode) {
-  if (mode !== "single" || DATASETS.single) return;
+  if (mode === "multiple") {
+    if (!multipleDataPromise) {
+      multipleDataPromise = loadGzippedJson("./data.json.gz").then((payload) => {
+        DATASETS.multiple = payload.records || [];
+        DATASET_COUNTS = payload.counts || {
+          multiple: DATASETS.multiple.length,
+          single: DATASET_COUNTS.single,
+        };
+        setPrefectures(payload.prefectures || []);
+      });
+    }
+    await multipleDataPromise;
+    return;
+  }
+
+  if (!DATASETS.multiple) {
+    await ensureModeData("multiple");
+  }
+  if (DATASETS.single) return;
   if (!singleDataPromise) {
-    singleDataPromise = loadScriptOnce("./single-data.js").then(() => {
-      DATASETS.single = window.SINGLE_PLACE_DATA || [];
+    singleDataPromise = loadGzippedJson("./single-data.json.gz").then((payload) => {
+      DATASETS.single = payload.records || [];
     });
   }
   await singleDataPromise;
@@ -396,13 +414,22 @@ function bindEvents() {
   });
 }
 
-function boot() {
-  initGeoChart();
+async function boot() {
   bindEvents();
-  setModeControlsLoading(false);
-  renderList();
-  const data = activeData();
-  if (data.length) selectRecord(data[0], true);
+  setModeControlsLoading(true);
+  els.placeList.innerHTML = `<p class="empty-state">複数地名を読み込み中</p>`;
+
+  try {
+    await ensureModeData(currentMode);
+    initGeoChart();
+    renderList({ selectFirstIfCurrentMissing: true });
+  } catch (error) {
+    els.placeList.innerHTML = `<p class="empty-state">データを読み込めませんでした</p>`;
+    clearDetails("読み込み失敗");
+    console.error(error);
+  } finally {
+    setModeControlsLoading(false);
+  }
 }
 
 boot();
