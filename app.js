@@ -42,6 +42,7 @@ const els = {
   detailPane: document.querySelector(".detail-pane"),
   prefChips: document.querySelector("#prefChips"),
   meaningText: document.querySelector("#meaningText"),
+  locationNote: document.querySelector("#locationNote"),
   locationList: document.querySelector("#locationList"),
   wordLink: document.querySelector("#wordLink"),
   literatureLink: document.querySelector("#literatureLink"),
@@ -262,6 +263,7 @@ function clearDetails(message = "該当なし") {
   els.locationCount.textContent = "0";
   els.meaningText.textContent = "";
   els.prefChips.innerHTML = "";
+  els.locationNote.classList.add("is-hidden");
   els.locationList.innerHTML = "";
   setLink(els.wordLink, "");
   setLink(els.literatureLink, "");
@@ -285,6 +287,7 @@ function renderDetails(record) {
     .join("");
 
   const locations = splitLocations(record);
+  els.locationNote.classList.toggle("is-hidden", locations.length === 0);
   els.locationList.innerHTML = locations
     .map((location) => (
       `<a class="location-pill" href="${escapeHtml(konjakuRedirectUrl(location))}" target="_blank" rel="noreferrer">${escapeHtml(location)}</a>`

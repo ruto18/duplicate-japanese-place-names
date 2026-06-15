@@ -257,6 +257,18 @@ h1 {
   line-height: 1.65;
 }
 
+.location-note {
+  margin: 0;
+  padding: 10px 14px 0;
+  color: #536174;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.location-note.is-hidden {
+  display: none;
+}
+
 .location-list {
   display: flex;
   flex-wrap: wrap;
