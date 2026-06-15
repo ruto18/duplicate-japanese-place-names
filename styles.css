@@ -208,19 +208,22 @@ h1 {
 }
 
 .pref-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(64px, max-content));
   gap: 6px;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .pref-chip {
+  min-width: 64px;
   padding: 4px 8px;
   border: 1px solid #f0b4bc;
   background: #fff1f3;
   color: var(--red-dark);
   font-size: 12px;
   font-weight: 700;
+  text-align: center;
 }
 
 .source-links {
