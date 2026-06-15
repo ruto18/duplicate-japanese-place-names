@@ -45,6 +45,7 @@ const els = {
   locationList: document.querySelector("#locationList"),
   wordLink: document.querySelector("#wordLink"),
   literatureLink: document.querySelector("#literatureLink"),
+  researchLink: document.querySelector("#researchLink"),
   postalLink: document.querySelector("#postalLink"),
   modeButtons: Array.from(document.querySelectorAll(".mode-button")),
   searchInput: document.querySelector("#searchInput"),
@@ -63,6 +64,7 @@ let currentRangeIndex = 0;
 let multipleDataPromise = null;
 let singleDataPromise = null;
 const RANGE_SIZE = 300;
+const CINII_RESEARCH_URL = "https://cir.nii.ac.jp/all";
 
 function normalize(text) {
   return String(text || "")
@@ -81,6 +83,18 @@ function escapeHtml(text) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function ciniiResearchUrl(name) {
+  const url = new URL(CINII_RESEARCH_URL);
+  url.searchParams.set("q", name);
+  return url.toString();
+}
+
+function konjakuRedirectUrl(name) {
+  const url = new URL("./konjaku.html", window.location.href);
+  url.searchParams.set("place", name);
+  return url.toString();
 }
 
 function activeData() {
@@ -251,6 +265,7 @@ function clearDetails(message = "該当なし") {
   els.locationList.innerHTML = "";
   setLink(els.wordLink, "");
   setLink(els.literatureLink, "");
+  setLink(els.researchLink, "");
   setLink(els.postalLink, "");
   updateFallbackMap(null);
   els.geoChart.classList.remove("is-visible");
@@ -271,11 +286,14 @@ function renderDetails(record) {
 
   const locations = splitLocations(record);
   els.locationList.innerHTML = locations
-    .map((location) => `<span class="location-pill">${escapeHtml(location)}</span>`)
+    .map((location) => (
+      `<a class="location-pill" href="${escapeHtml(konjakuRedirectUrl(location))}" target="_blank" rel="noreferrer">${escapeHtml(location)}</a>`
+    ))
     .join("");
 
   setLink(els.wordLink, record.urls?.word);
   setLink(els.literatureLink, record.urls?.literature);
+  setLink(els.researchLink, ciniiResearchUrl(record.name));
   setLink(els.postalLink, record.urls?.postal);
 }
 

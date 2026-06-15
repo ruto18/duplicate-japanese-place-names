@@ -225,8 +225,11 @@ h1 {
 
 .source-links {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
   flex: none;
+  max-width: 280px;
 }
 
 .source-links a {
@@ -238,6 +241,7 @@ h1 {
   text-decoration: none;
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .source-links a:hover {
@@ -268,6 +272,14 @@ h1 {
   color: #344052;
   font-size: 12px;
   line-height: 1.45;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.location-pill:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
 }
 
 .list-pane {
