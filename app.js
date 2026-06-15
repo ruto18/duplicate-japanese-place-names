@@ -50,6 +50,7 @@ const els = {
   postalLink: document.querySelector("#postalLink"),
   modeButtons: Array.from(document.querySelectorAll(".mode-button")),
   searchInput: document.querySelector("#searchInput"),
+  includeAdminInput: document.querySelector("#includeAdminInput"),
   resultCount: document.querySelector("#resultCount"),
   totalCount: document.querySelector("#totalCount"),
   rangeSelect: document.querySelector("#rangeSelect"),
@@ -98,6 +99,17 @@ function konjakuRedirectUrl(name) {
   return url.toString();
 }
 
+function containsCityCountyWard(name) {
+  return /[^市郡区][市郡区]/.test(String(name || ""));
+}
+
+function prepareRecords(records) {
+  records.forEach((record) => {
+    record.hasCityCountyWard = containsCityCountyWard(record.name);
+  });
+  return records;
+}
+
 function activeData() {
   return DATASETS[currentMode] || [];
 }
@@ -131,7 +143,7 @@ async function ensureModeData(mode) {
   if (mode === "multiple") {
     if (!multipleDataPromise) {
       multipleDataPromise = loadGzippedJson("./data.json.gz").then((payload) => {
-        DATASETS.multiple = payload.records || [];
+        DATASETS.multiple = prepareRecords(payload.records || []);
         DATASET_COUNTS = payload.counts || {
           multiple: DATASETS.multiple.length,
           single: DATASET_COUNTS.single,
@@ -149,7 +161,7 @@ async function ensureModeData(mode) {
   if (DATASETS.single) return;
   if (!singleDataPromise) {
     singleDataPromise = loadGzippedJson("./single-data.json.gz").then((payload) => {
-      DATASETS.single = payload.records || [];
+      DATASETS.single = prepareRecords(payload.records || []);
     });
   }
   await singleDataPromise;
@@ -356,7 +368,10 @@ function renderRangeOptions(total) {
 
 function renderList({ selectFirstIfCurrentMissing = false } = {}) {
   const query = normalize(els.searchInput.value);
-  const data = activeData();
+  const includeAdmin = els.includeAdminInput.checked;
+  const data = includeAdmin
+    ? activeData()
+    : activeData().filter((record) => !record.hasCityCountyWard);
   const matches = query
     ? data.filter((record) => normalize(`${record.name} ${record.reading}`).includes(query))
     : data;
@@ -421,6 +436,12 @@ function bindEvents() {
     currentRangeIndex = 0;
     els.placeList.scrollTop = 0;
     renderList();
+  });
+
+  els.includeAdminInput.addEventListener("change", () => {
+    currentRangeIndex = 0;
+    els.placeList.scrollTop = 0;
+    renderList({ selectFirstIfCurrentMissing: true });
   });
 
   els.rangeSelect.addEventListener("change", () => {

@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>地域名検索</title>
-    <link rel="stylesheet" href="./styles.css?v=20260616-1">
+    <link rel="stylesheet" href="./styles.css?v=20260616-2">
     <script src="https://www.gstatic.com/charts/loader.js"></script>
-    <script src="./app.js?v=20260616-1" defer></script>
+    <script src="./app.js?v=20260616-2" defer></script>
   </head>
   <body>
     <main class="app-shell">
@@ -58,6 +58,10 @@
           </div>
           <label class="search-label" for="searchInput">地名検索</label>
           <input id="searchInput" class="search-input" type="search" autocomplete="off" placeholder="例: 大宮 / 御幸 / あさひ">
+          <label class="admin-filter" for="includeAdminInput">
+            <input id="includeAdminInput" type="checkbox">
+            <span>市・郡・区を含む</span>
+          </label>
           <div class="list-meta">
             <span id="resultCount">0件</span>
             <span id="totalCount">0件中</span>

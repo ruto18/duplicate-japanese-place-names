@@ -368,6 +368,24 @@ h1 {
   box-shadow: inset 0 0 0 1px var(--blue);
 }
 
+.admin-filter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-filter input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--blue);
+}
+
 .list-meta {
   display: flex;
   justify-content: space-between;
