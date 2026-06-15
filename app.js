@@ -67,6 +67,7 @@ let multipleDataPromise = null;
 let singleDataPromise = null;
 const RANGE_SIZE = 300;
 const CINII_RESEARCH_URL = "https://cir.nii.ac.jp/all";
+const NDL_SEARCH_URL = "https://ndlsearch.ndl.go.jp/search";
 
 function normalize(text) {
   return String(text || "")
@@ -90,6 +91,12 @@ function escapeHtml(text) {
 function ciniiResearchUrl(name) {
   const url = new URL(CINII_RESEARCH_URL);
   url.searchParams.set("q", name);
+  return url.toString();
+}
+
+function ndlSearchUrl(name) {
+  const url = new URL(NDL_SEARCH_URL);
+  url.searchParams.set("keyword", `${name} 地名`);
   return url.toString();
 }
 
@@ -307,7 +314,7 @@ function renderDetails(record) {
     .join("");
 
   setLink(els.wordLink, record.urls?.word);
-  setLink(els.literatureLink, record.urls?.literature);
+  setLink(els.literatureLink, ndlSearchUrl(record.name));
   setLink(els.researchLink, ciniiResearchUrl(record.name));
   setLink(els.postalLink, record.urls?.postal);
 }
