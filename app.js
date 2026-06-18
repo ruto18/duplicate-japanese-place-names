@@ -68,7 +68,7 @@ let singleDataPromise = null;
 const RANGE_SIZE = 300;
 const CINII_RESEARCH_URL = "https://cir.nii.ac.jp/all";
 const NDL_SEARCH_URL = "https://ndlsearch.ndl.go.jp/search";
-const DATA_VERSION = "20260619-2";
+const DATA_VERSION = "20260619-3";
 const MULTIPLE_DATA_URL = `./data.json.gz?v=${DATA_VERSION}`;
 const SINGLE_DATA_URL = `./single-data.json.gz?v=${DATA_VERSION}`;
 
@@ -323,7 +323,9 @@ function renderDetails(record) {
 }
 
 function setActiveButton(id) {
-  if (activeButton) activeButton.classList.remove("is-active");
+  els.placeList.querySelectorAll(".place-item.is-active").forEach((button) => {
+    button.classList.remove("is-active");
+  });
   activeButton = els.placeList.querySelector(`[data-id="${id}"]`);
   if (activeButton) activeButton.classList.add("is-active");
 }
@@ -340,7 +342,7 @@ function selectRecord(record, scrollIntoView = false) {
 
 function placeItem(record) {
   return `
-    <button class="place-item${currentRecord?.id === record.id ? " is-active" : ""}" type="button" data-id="${record.id}">
+    <button class="place-item${currentRecord === record ? " is-active" : ""}" type="button" data-id="${record.id}">
       <span>
         <span class="place-name">${escapeHtml(record.name)}</span>
         <span class="place-reading">${escapeHtml(record.reading)}</span>
