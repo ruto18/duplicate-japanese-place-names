@@ -68,7 +68,7 @@ let singleDataPromise = null;
 const RANGE_SIZE = 300;
 const CINII_RESEARCH_URL = "https://cir.nii.ac.jp/all";
 const NDL_SEARCH_URL = "https://ndlsearch.ndl.go.jp/search";
-const DATA_VERSION = "20260619-1";
+const DATA_VERSION = "20260619-2";
 const MULTIPLE_DATA_URL = `./data.json.gz?v=${DATA_VERSION}`;
 const SINGLE_DATA_URL = `./single-data.json.gz?v=${DATA_VERSION}`;
 
